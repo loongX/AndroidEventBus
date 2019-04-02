@@ -31,4 +31,13 @@ public interface EventHandler {
      * @param event 待处理的事件
      */
     void handleEvent(Subscription subscription, Object event);
+
+    /**
+     * 将处理事件
+     *
+     * @param subscription
+     * @param event
+     * @param uptimeMillis
+     */
+    void handleEventAtTime(Subscription subscription, Object event, long uptimeMillis);
 }

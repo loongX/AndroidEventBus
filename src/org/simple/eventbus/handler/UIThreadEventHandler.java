@@ -51,4 +51,21 @@ public class UIThreadEventHandler implements EventHandler {
         });
     }
 
+    /**
+     *
+     * @param subscription
+     * @param event
+     * @param uptimeMillis 毫秒
+     */
+    @Override
+    public void handleEventAtTime(Subscription subscription, Object event, long uptimeMillis) {
+        mUIHandler.postAtTime(new Runnable() {
+
+            @Override
+            public void run() {
+                mEventHandler.handleEvent(subscription, event);
+            }
+        }, uptimeMillis);
+    }
+
 }

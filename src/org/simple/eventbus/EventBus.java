@@ -202,6 +202,21 @@ public final class EventBus {
     }
 
     /**
+     * 发布定时事件
+     * @param event 要发布的事件
+     * @param tag 事件的tag, 类似于BroadcastReceiver的action
+     * @param uptimeMillis 毫秒，要延时的时间毫秒
+     */
+    public void postAtTime(Object event, String tag, long uptimeMillis) {
+        if (event == null) {
+            Log.e(this.getClass().getSimpleName(), "The event object is null");
+            return;
+        }
+        mLocalEvents.get().offer(new EventType(event.getClass(), tag));
+        mDispatcher.dispatchEventsAtTime(event, uptimeMillis);
+    }
+
+    /**
      * 发布Sticky事件,tag为EventType.DEFAULT_TAG
      * 
      * @param event
@@ -367,6 +382,18 @@ public final class EventBus {
         }
 
         /**
+         * 延时处理
+         * @param aEvent
+         * @param uptimeMillis
+         */
+        void dispatchEventsAtTime(Object aEvent, long uptimeMillis) {
+            Queue<EventType> eventsQueue = mLocalEvents.get();
+            while (eventsQueue.size() > 0) {
+                deliveryEventAtTime(eventsQueue.poll(), aEvent, uptimeMillis);
+            }
+        }
+
+        /**
          * 根据aEvent查找到所有匹配的集合,然后处理事件
          * 
          * @param type
@@ -378,6 +405,21 @@ public final class EventBus {
             // 迭代所有匹配的事件并且分发给订阅者
             for (EventType eventType : eventTypes) {
                 handleEvent(eventType, aEvent);
+            }
+        }
+
+        /**
+         * 根据aEvent查找到所有匹配的集合,然后定时处理事件
+         * @param type
+         * @param aEvent
+         * @param uptimeMillis
+         */
+        private void deliveryEventAtTime(EventType type, Object aEvent, long uptimeMillis) {
+            // 如果有缓存则直接从缓存中取
+            List<EventType> eventTypes = getMatchedEventTypes(type, aEvent);
+            // 迭代所有匹配的事件并且分发给订阅者
+            for (EventType eventType : eventTypes) {
+                handleEventAtTime(eventType, aEvent, uptimeMillis);
             }
         }
 
@@ -398,6 +440,27 @@ public final class EventBus {
                 EventHandler eventHandler = getEventHandler(mode);
                 // 处理事件
                 eventHandler.handleEvent(subscription, aEvent);
+            }
+        }
+
+        /**
+         * 延时处理单个事件
+         *
+         * @param eventType
+         * @param aEvent
+         * @param uptimeMillis
+         */
+        private void handleEventAtTime(EventType eventType, Object aEvent, long uptimeMillis) {
+            List<Subscription> subscriptions = mSubcriberMap.get(eventType);
+            if (subscriptions == null) {
+                return;
+            }
+
+            for (Subscription subscription : subscriptions) {
+                final ThreadMode mode = subscription.threadMode;
+                EventHandler eventHandler = getEventHandler(mode);
+                // 处理事件
+                eventHandler.handleEventAtTime(subscription, aEvent, uptimeMillis);
             }
         }
 

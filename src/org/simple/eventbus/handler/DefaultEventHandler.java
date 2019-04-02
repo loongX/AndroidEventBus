@@ -48,4 +48,28 @@ public class DefaultEventHandler implements EventHandler {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 同线程内不执行定时操作
+     * @param subscription
+     * @param event
+     * @param uptimeMillis
+     */
+    @Override
+    public void handleEventAtTime(Subscription subscription, Object event, long uptimeMillis) {
+        if (subscription == null
+                || subscription.subscriber.get() == null) {
+            return;
+        }
+        try {
+            // 执行
+            subscription.targetMethod.invoke(subscription.subscriber.get(), event);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
 }

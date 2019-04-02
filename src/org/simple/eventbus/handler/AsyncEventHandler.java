@@ -60,6 +60,23 @@ public class AsyncEventHandler implements EventHandler {
     }
 
     /**
+     * 将订阅的函数执行在异步线程中
+     *
+     * @param subscription
+     * @param event
+     * @param uptimeMillis
+     */
+    public void handleEventAtTime(final Subscription subscription, final Object event, final long uptimeMillis) {
+        mDispatcherThread.postAtTime(new Runnable() {
+
+            @Override
+            public void run() {
+                mEventHandler.handleEvent(subscription, event);
+            }
+        }, uptimeMillis);
+    }
+
+    /**
      * @author mrsimple
      */
     class DispatcherThread extends HandlerThread {
@@ -85,6 +102,19 @@ public class AsyncEventHandler implements EventHandler {
             }
 
             mAsyncHandler.post(runnable);
+        }
+
+        /**
+         * @param r
+         * @param uptimeMillis
+         */
+        public void postAtTime(Runnable r, long uptimeMillis)
+        {
+            if (mAsyncHandler == null) {
+                throw new NullPointerException("mAsyncHandler == null, please call start() first.");
+            }
+
+            mAsyncHandler.postAtTime(r, uptimeMillis);
         }
 
         @Override
