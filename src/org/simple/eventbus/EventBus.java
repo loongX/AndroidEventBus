@@ -187,6 +187,15 @@ public final class EventBus {
     }
 
     /**
+     * post a delay event
+     * @param event
+     * @param uptimeMillis
+     */
+    public void postAtTime(Object event, long uptimeMillis) {
+        postAtTime(event, EventType.DEFAULT_TAG, uptimeMillis);
+    }
+
+    /**
      * 发布事件
      * 
      * @param event 要发布的事件
